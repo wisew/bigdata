@@ -3,11 +3,18 @@ package com.wangwei.spark.rdd
 
 import org.apache.spark.{Partitioner, SparkConf, SparkContext}
 
+/**
+  * 如果需要repartition，然后排序
+  * 可以考虑reparitionAndSortWithinPartitions代替
+  * 必须应用在(k,v)类型的rdd上
+  * 只能保证分区内部有序
+  */
 object RepartitionAndSortWithinPartitionsDemo {
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("hello").setMaster("spark://192.168.1.113:7077")
+    val conf = new SparkConf().setAppName("hello").setMaster("local[4]")
     val sc = new SparkContext(conf)
-    val rdd = sc.textFile("file:///root/spark_tmp/word.txt")
+    val data = Array("abc abcd ab abcdefg abcde","acadasdad asdad asdad")
+    val rdd = sc.parallelize(data)
     val r1 = rdd.flatMap(_.split(" ")).map(x => (x,1)).reduceByKey(_+_)
     // 重写排序规则
     implicit val myOrdering = new Ordering[String] {
@@ -25,7 +32,11 @@ object RepartitionAndSortWithinPartitionsDemo {
       }
     }
     val r2 = r1.repartitionAndSortWithinPartitions(new MyPartitioner(5))
-    r2.saveAsTextFile("file:///root/spark_tmp/2")
+    println("glom=======")
+    r2.glom().collect().foreach(x => {
+      x.foreach(print)
+      println()
+    })
     sc.stop()
   }
 }
