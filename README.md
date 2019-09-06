@@ -1,6 +1,1 @@
-## rdd的操作
-- aggregate
-- aggregateByKey
-- sortBy
-- sortByKey
-- repartitionAndSortWithinPartitions
+大数据方面的代码实例以及配置实例
